@@ -39,9 +39,6 @@
 "                   region start and stop
 "               you can change them as you like.
 "
-"               g:user_defined_snippets
-"                   file name of user defined snippets.
-"
 "           key words:
 "               see "templates" section.
 "==================================================
@@ -62,10 +59,6 @@ endif
 
 if !exists("g:re")
     let g:re = '>`'    "region stop
-endif
-
-if !exists("g:user_defined_snippets")
-    let g:user_defined_snippets = "$VIMRUNTIME/plugin/my_snippets.vim"
 endif
 
 " ----------------------------
@@ -247,10 +240,5 @@ let g:template['cpp'] = g:template['c']
 " common templates
 let g:template['_'] = {}
 let g:template['_']['xt'] = "\<c-r>=strftime(\"%Y-%m-%d %H:%M:%S\")\<cr>"
-
-" ---------------------------------------------
-" load user defined snippets
-exec "silent! runtime ".g:user_defined_snippets
-
 
 " vim: set ft=vim ff=unix fdm=marker :
