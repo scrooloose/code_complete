@@ -139,7 +139,6 @@ function! ExpandTemplate(cword)
     endif
     if has_key(s:templates['_'],a:cword)
         let s:jumppos = line('.')
-        "return "\<c-w>" . s:templates['_'][a:cword][0]
         if len(s:templates['_'][a:cword]) == 1
             return "\<c-w>" . s:templates['_'][a:cword][0]
         else
