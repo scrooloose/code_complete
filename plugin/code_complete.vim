@@ -126,25 +126,25 @@ function! FunctionComplete(fun)
 endfunction
 
 function! ExpandTemplate(cword)
+    let snippets = []
     if has_key(s:templates,&ft)
         if has_key(s:templates[&ft],a:cword)
-            let s:jumppos = line('.')
-
-            if len(s:templates[&ft][a:cword]) == 1
-                return "\<c-w>" . s:templates[&ft][a:cword][0]
-            else
-                return "\<c-w>" . s:ChooseSnippet(&filetype, a:cword)
-            endif
+            let snippets = extend(snippets, s:templates[&ft][a:cword])
         endif
     endif
     if has_key(s:templates['_'],a:cword)
+        let snippets = extend(snippets, s:templates['_'][a:cword])
+    endif
+
+    if len(snippets)
         let s:jumppos = line('.')
-        if len(s:templates['_'][a:cword]) == 1
-            return "\<c-w>" . s:templates['_'][a:cword][0]
+        if len(snippets) == 1
+            return "\<c-w>" . snippets[0]
         else
-            return "\<c-w>" . s:ChooseSnippet('_', a:cword)
+            return "\<c-w>" . s:ChooseSnippet(snippets)
         endif
     endif
+
     return ''
 endfunction
 
@@ -213,15 +213,15 @@ function! GetFileName()
     return _name
 endfunction
 
-"asks the user to select a snippet for the given keyword
+"asks the user to select a snippet from the given list
 "
 "returns the body of the chosen snippet
-function! s:ChooseSnippet(filetype, keyword)
+function! s:ChooseSnippet(snippets)
     "build the dialog/choice list
     let choices = ["Choose a snippet:"]
     let i = 0
-    while i < len(s:templates[a:filetype][a:keyword])
-        call add(choices, i+1 . "." . substitute(s:templates[a:filetype][a:keyword][i], "\r", '<CR>', 'g'))
+    while i < len(a:snippets)
+        call add(choices, i+1 . "." . substitute(a:snippets[i], "\r", '<CR>', 'g'))
         let i += 1
     endwhile
 
@@ -237,7 +237,7 @@ function! s:ChooseSnippet(filetype, keyword)
         return ""
     endif
 
-    return s:templates[a:filetype][a:keyword][choice-1]
+    return a:snippets[choice-1]
 endfunction
 
 " Templates: {{{1
