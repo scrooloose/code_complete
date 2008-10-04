@@ -84,6 +84,7 @@ function! CodeCompleteStart()
     exec "silent! nunmap  <buffer> ".g:completekey
     exec "inoremap <buffer> ".g:completekey." <c-r>=CodeComplete()<cr><c-r>=SwitchRegion()<cr>"
     exec "nnoremap <buffer> ".g:completekey." i<c-r>=SwitchRegion()<cr>"
+    exec "snoremap <buffer> ".g:completekey." <ESC>`>i<c-r>=SwitchRegion()<cr>"
 endfunction
 
 function! CodeCompleteStop()
@@ -157,11 +158,10 @@ function! SwitchRegion()
         return ''
     endif
     if s:jumppos != -1
-        call cursor(s:jumppos,0)
+        call cursor(s:jumppos,1)
         let s:jumppos = -1
     endif
-    if match(getline('.'),g:rs.'.*'.g:re)!=-1 || search(g:rs.'.\{-}'.g:re)!=0
-        normal 0
+    if search(g:rs.'.\{-}'.g:re, 'c') != 0
         call search(g:rs,'c',line('.'))
         let start_col = col(".")
         normal v
