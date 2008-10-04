@@ -61,6 +61,9 @@ if !exists("g:re")
     let g:re = '>`'    "region stop
 endif
 
+if !exists("g:rsd")
+    let g:rsd = '`<+'    "region start with default value
+endif
 
 " ----------------------------
 let s:expanded = 0  "in case of inserting char after expand
@@ -82,9 +85,9 @@ menu <silent>       &Tools.Code\ Complete\ Stop           :call CodeCompleteStop
 function! CodeCompleteStart()
     exec "silent! iunmap  <buffer> ".g:completekey
     exec "silent! nunmap  <buffer> ".g:completekey
-    exec "inoremap <buffer> ".g:completekey." <c-r>=CodeComplete()<cr><c-r>=SwitchRegion()<cr>"
-    exec "nnoremap <buffer> ".g:completekey." i<c-r>=SwitchRegion()<cr>"
-    exec "snoremap <buffer> ".g:completekey." <ESC>`>i<c-r>=SwitchRegion()<cr>"
+    exec "inoremap <buffer> ".g:completekey." <c-r>=CodeComplete()<cr><c-r>=SwitchRegion(0)<cr>"
+    exec "nnoremap <buffer> ".g:completekey." i<c-r>=SwitchRegion(0)<cr>"
+    exec "snoremap <buffer> ".g:completekey." <esc>i<c-r>=SwitchRegion(1)<cr>"
 endfunction
 
 function! CodeCompleteStop()
@@ -153,7 +156,7 @@ function! ExpandTemplate(cword)
     return ''
 endfunction
 
-function! SwitchRegion()
+function! SwitchRegion(removeDefaults)
     if len(s:signature_list)>1
         let s:signature_list=[]
         return ''
@@ -162,6 +165,11 @@ function! SwitchRegion()
         call cursor(s:jumppos,1)
         let s:jumppos = -1
     endif
+
+    if a:removeDefaults
+        call s:RemoveDefaultMarkers()
+    endif
+
     if search(g:rs.'.\{-}'.g:re, 'c') != 0
         call search(g:rs,'c',line('.'))
         let start_col = col(".")
@@ -242,6 +250,33 @@ function! s:ChooseSnippet(snippets)
     endif
 
     return a:snippets[choice-1]
+endfunction
+
+
+"removes a set of default markers for the current cursor postion
+"
+"i.e. turn this
+"   foo `<=foobar>` foo
+
+"into this
+"
+"  foo foobar foo
+function! s:RemoveDefaultMarkers()
+    let col = col(".")
+
+    "check for default markers at current position
+    if strpart(getline('.'), col-1, strlen(g:rsd)) == g:rsd
+
+        "remove them
+        let line = getline(".")
+        let start = col-1
+        let startOfBody = start + strlen(g:rsd)
+        let end = match(line, g:re, start)
+        let line = strpart(line, 0, start) .
+            \ strpart(line, startOfBody, end - startOfBody) .
+            \ strpart(line, end+strlen(g:re))
+        call setline(line("."), line)
+    endif
 endfunction
 
 " Templates: {{{1
