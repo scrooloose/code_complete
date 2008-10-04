@@ -90,6 +90,7 @@ endfunction
 function! CodeCompleteStop()
     exec "silent! iunmap <buffer> ".g:completekey
     exec "silent! nunmap <buffer> ".g:completekey
+    exec "silent! sunmap <buffer> ".g:completekey
 endfunction
 
 function! FunctionComplete(fun)
