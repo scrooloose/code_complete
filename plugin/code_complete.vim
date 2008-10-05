@@ -299,4 +299,8 @@ function! CodeCompleteAddTemplate(filetype, keyword, expansion)
     call add(s:templates[a:filetype][a:keyword], a:expansion)
 endfunction
 
+function! CodeCompleteAddGlobalTemplate(keyword, expansion)
+    call CodeCompleteAddTemplate('_', a:keyword, a:expansion)
+endfunction
+
 " vim: set ft=vim ff=unix fdm=marker :
