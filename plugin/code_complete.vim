@@ -68,6 +68,10 @@
 "   4 is an empty marker, these markers are removed when the cursor "arrives"
 "   on them.
 "
+" Duplicate Keywords:
+"   If multiple templates exist for the same keyword then the script will
+"   ask you which one you want to insert.
+"
 "==================================================
 
 if v:version < 700
