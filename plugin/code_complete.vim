@@ -261,22 +261,24 @@ endfunction
 "returns the body of the chosen snippet
 function! s:ChooseSnippet(snippets)
     "build the dialog/choice list
-    let choices = ["Choose a snippet:"]
+    let prompt = "Choose a snippet:\n\n"
     let i = 0
     while i < len(a:snippets)
-        call add(choices, i+1 . "." . substitute(a:snippets[i], "\r", '<CR>', 'g'))
+        let prompt .= i+1 . "." . substitute(a:snippets[i], "\r", '<CR>', 'g') . "\n"
         let i += 1
     endwhile
+    let prompt .= "\nType a number:"
 
     "input(save|restore) needed because this function is called during a
     "mapping
+    redraw!
+    echon prompt
     call inputsave()
-    let choice = inputlist(choices)
+    let choice = nr2char(getchar())
     call inputrestore()
     redraw!
 
-    if choice <= 0 || choice >= len(choices)
-        echoerr "Invalid choice"
+    if choice !~ '^\d*$' || choice < 1 || choice > len(a:snippets)
         return ""
     endif
 
