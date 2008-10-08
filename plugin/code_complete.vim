@@ -207,11 +207,9 @@ function! SwitchRegion(removeDefaults)
     endif
 
     if search(g:rs.'.\{-}'.g:re, 'c') != 0
-        call search(g:rs,'c',line('.'))
-        let start_col = col(".")
+        let start_col =  searchpos(g:rs,'c',line('.'))[1]
         normal v
-        call search(g:re,'e',line('.'))
-        let end_col = col(".")
+        let end_col = searchpos(g:re,'e',line('.'))[1]
         if &selection == "exclusive"
             exec "norm " . "\<right>"
         endif
