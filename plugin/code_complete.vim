@@ -109,8 +109,8 @@ let s:doappend = 1
 let s:templates = {}
 let s:templates['_'] = {}
 
-command! -nargs=0 CodeCompleteStart call CodeCompleteStart()
-command! -nargs=0 CodeCompleteStop call CodeCompleteStop()
+command! -nargs=0 CodeCompleteStart call s:CodeCompleteStart()
+command! -nargs=0 CodeCompleteStop call s:CodeCompleteStop()
 
 " Autocommands: {{{1
 autocmd BufReadPost,BufNewFile * CodeCompleteStart
@@ -121,21 +121,21 @@ menu <silent>       &Tools.Code\ Complete\ Stop           :CodeCompleteStop<cr>
 
 " Function Definations: {{{1
 
-function! CodeCompleteStart()
+function! s:CodeCompleteStart()
     exec "silent! iunmap  <buffer> ".g:completekey
     exec "silent! nunmap  <buffer> ".g:completekey
-    exec "inoremap <buffer> ".g:completekey." <c-r>=CodeComplete()<cr><c-r>=SwitchRegion(0)<cr>"
-    exec "nnoremap <buffer> ".g:completekey." i<c-r>=SwitchRegion(0)<cr>"
-    exec "snoremap <buffer> ".g:completekey." <esc>i<c-r>=SwitchRegion(1)<cr>"
+    exec "inoremap <buffer> ".g:completekey." <c-r>=CodeComplete()<cr><c-r>=CodeComplete_SwitchRegion(0)<cr>"
+    exec "nnoremap <buffer> ".g:completekey." i<c-r>=CodeComplete_SwitchRegion(0)<cr>"
+    exec "snoremap <buffer> ".g:completekey." <esc>i<c-r>=CodeComplete_SwitchRegion(1)<cr>"
 endfunction
 
-function! CodeCompleteStop()
+function! s:CodeCompleteStop()
     exec "silent! iunmap <buffer> ".g:completekey
     exec "silent! nunmap <buffer> ".g:completekey
     exec "silent! sunmap <buffer> ".g:completekey
 endfunction
 
-function! FunctionComplete(fun)
+function! s:FunctionComplete(fun)
     let s:signature_list=[]
     let signature_word=[]
     let ftags=taglist("^".a:fun."$")
@@ -172,7 +172,7 @@ function! FunctionComplete(fun)
     endif
 endfunction
 
-function! ExpandTemplate(cword)
+function! s:ExpandTemplate(cword)
     let snippets = []
     if has_key(s:templates,&ft)
         if has_key(s:templates[&ft],a:cword)
@@ -195,7 +195,7 @@ function! ExpandTemplate(cword)
     return ''
 endfunction
 
-function! SwitchRegion(removeDefaults)
+function! CodeComplete_SwitchRegion(removeDefaults)
     if len(s:signature_list)>1
         let s:signature_list=[]
         return ''
@@ -237,14 +237,14 @@ function! CodeComplete()
     let s:doappend = 1
     let function_name = matchstr(getline('.')[:(col('.')-2)],'\zs\w*\ze\s*(\s*$')
     if function_name != ''
-        let funcres = FunctionComplete(function_name)
+        let funcres = s:FunctionComplete(function_name)
         if funcres != ''
             let s:doappend = 0
         endif
         return funcres
     else
         let template_name = substitute(getline('.')[:(col('.')-2)],'\zs.*\W\ze\w*$','','g')
-        let tempres = ExpandTemplate(template_name)
+        let tempres = s:ExpandTemplate(template_name)
         if tempres != ''
             let s:doappend = 0
         endif
