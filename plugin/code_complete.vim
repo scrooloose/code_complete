@@ -252,16 +252,6 @@ function! CodeComplete()
     endif
 endfunction
 
-
-" [Get converted file name like __THIS_FILE__ ]
-function! GetFileName()
-    let filename=expand("%:t")
-    let filename=toupper(filename)
-    let _name=substitute(filename,'\.','_',"g")
-    let _name="__"._name."__"
-    return _name
-endfunction
-
 "asks the user to select a snippet from the given list
 "
 "returns the body of the chosen snippet
