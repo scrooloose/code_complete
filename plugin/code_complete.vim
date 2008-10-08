@@ -19,13 +19,13 @@
 "       press <tab> after function name and (
 "         foo ( <tab>
 "       becomes:
-"         foo ( `<first param>`,`<second param>` )
+"         foo ( <+first param+>,<+second param+> )
 "       press <tab> after code template
 "         if <tab>
 "       becomes:
-"         if( `<...>` )
+"         if( <+...+> )
 "         {
-"             `<...>`
+"             <+...+>
 "         }
 "
 "
@@ -51,13 +51,13 @@
 "
 "
 " Example Template: a for loop template for java
-"   call CodeCompleteAddTemplate("java", "for", "for(`<=int i=0>`; `<condition>`; `<=i++>`){\<CR>`<>`\<CR>}")
+"   call CodeCompleteAddTemplate("java", "for", "for(<+=int i=0+>; <+condition+>; <+=i+++>){\<CR><++>\<CR>}")
 "
 "   There are 4 markers:
-"       1. `<=int i=0>`
-"       2. `<condition>`
-"       3. `<=i++>`
-"       4. `<>`
+"       1. <+=int i=0+>
+"       2. <+condition+>
+"       3. <+=i+++>
+"       4. <++>
 "
 "   1 and 3 have default values. If you "tab over" them, they will be replaced
 "   with the text "int i=0" and "i++".
@@ -90,15 +90,15 @@ if !exists("g:completekey")
 endif
 
 if !exists("g:rs")
-    let g:rs = '`<'    "region start
+    let g:rs = '<+'    "region start
 endif
 
 if !exists("g:re")
-    let g:re = '>`'    "region stop
+    let g:re = '+>'    "region stop
 endif
 
 if !exists("g:rsd")
-    let g:rsd = '`<='    "region start with default value
+    let g:rsd = '<+='    "region start with default value
 endif
 
 " ----------------------------
@@ -292,7 +292,7 @@ endfunction
 "removes a set of default markers for the current cursor postion
 "
 "i.e. turn this
-"   foo `<=foobar>` foo
+"   foo <+=foobar+> foo
 
 "into this
 "
