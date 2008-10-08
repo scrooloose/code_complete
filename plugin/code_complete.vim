@@ -78,6 +78,11 @@ if v:version < 700
     finish
 endif
 
+if exists("loaded_code_complete_plugin")
+    finish
+endif
+let loaded_code_complete_plugin = 1
+
 " Variable Definations: {{{1
 " options, define them as you like in vimrc:
 if !exists("g:completekey")
