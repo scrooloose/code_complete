@@ -109,12 +109,15 @@ let s:doappend = 1
 let s:templates = {}
 let s:templates['_'] = {}
 
+command! -nargs=0 CodeCompleteStart call CodeCompleteStart()
+command! -nargs=0 CodeCompleteStop call CodeCompleteStop()
+
 " Autocommands: {{{1
-autocmd BufReadPost,BufNewFile * call CodeCompleteStart()
+autocmd BufReadPost,BufNewFile * CodeCompleteStart
 
 " Menus:
-menu <silent>       &Tools.Code\ Complete\ Start          :call CodeCompleteStart()<CR>
-menu <silent>       &Tools.Code\ Complete\ Stop           :call CodeCompleteStop()<CR>
+menu <silent>       &Tools.Code\ Complete\ Start          :CodeCompleteStart<cr>
+menu <silent>       &Tools.Code\ Complete\ Stop           :CodeCompleteStop<cr>
 
 " Function Definations: {{{1
 
