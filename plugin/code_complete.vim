@@ -98,7 +98,7 @@ if !exists("g:re")
 endif
 
 if !exists("g:rsd")
-    let g:rsd = '`<+'    "region start with default value
+    let g:rsd = '`<='    "region start with default value
 endif
 
 " ----------------------------
