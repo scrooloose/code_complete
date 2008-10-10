@@ -13,7 +13,8 @@
 "
 " Usage:
 "   hotkey:
-"       "<tab>" (default value of g:completekey) Do all the jobs with this key
+"       "<tab>" (default value of g:code_complete_complete_key) Do all the
+"       jobs with this key
 "
 "   example:
 "       press <tab> after function name and (
@@ -30,13 +31,13 @@
 "
 "
 " Variables:
-"   g:completekey
+"   g:code_complete_complete_key               default: <tab>
 "       the key used to complete function parameters and key words.
-"   g:rs
+"   g:code_complete_marker_start               default: <+
 "       region start
-"   g:re
+"   g:code_complete_marker_end                 default: +>
 "       region end
-"   g:rsd
+"   g:code_complete_marker_start_default       default: <+=
 "       start a region with a default value
 "
 " Defining Templates:
@@ -85,21 +86,24 @@ let loaded_code_complete_plugin = 1
 
 " Variable Definations: {{{1
 " options, define them as you like in vimrc:
-if !exists("g:completekey")
-    let g:completekey = "<tab>"   "hotkey
+if !exists("g:code_complete_complete_key")
+    let g:code_complete_complete_key = "<tab>"
 endif
 
-if !exists("g:rs")
-    let g:rs = '<+'    "region start
+if !exists("g:code_complete_marker_start")
+    let g:code_complete_marker_start = '<+'
 endif
+let s:rs = g:code_complete_marker_start
 
-if !exists("g:re")
-    let g:re = '+>'    "region stop
+if !exists("g:code_complete_marker_end")
+    let g:code_complete_marker_end = '+>'
 endif
+let s:re = g:code_complete_marker_end
 
-if !exists("g:rsd")
-    let g:rsd = '<+='    "region start with default value
+if !exists("g:code_complete_marker_start_default")
+    let g:code_complete_marker_start_default = '<+='
 endif
+let s:rsd = g:code_complete_marker_start_default
 
 " ----------------------------
 let s:expanded = 0  "in case of inserting char after expand
@@ -122,17 +126,17 @@ menu <silent>       &Tools.Code\ Complete\ Stop           :CodeCompleteStop<cr>
 " Function Definations: {{{1
 
 function! s:CodeCompleteStart()
-    exec "silent! iunmap  <buffer> ".g:completekey
-    exec "silent! nunmap  <buffer> ".g:completekey
-    exec "inoremap <buffer> ".g:completekey." <c-r>=CodeComplete()<cr><c-r>=CodeComplete_SwitchRegion(0)<cr>"
-    exec "nnoremap <buffer> ".g:completekey." i<c-r>=CodeComplete_SwitchRegion(0)<cr>"
-    exec "snoremap <buffer> ".g:completekey." <esc>i<c-r>=CodeComplete_SwitchRegion(1)<cr>"
+    exec "silent! iunmap  <buffer> ".g:code_complete_complete_key
+    exec "silent! nunmap  <buffer> ".g:code_complete_complete_key
+    exec "inoremap <buffer> ".g:code_complete_complete_key." <c-r>=CodeComplete()<cr><c-r>=CodeComplete_SwitchRegion(0)<cr>"
+    exec "nnoremap <buffer> ".g:code_complete_complete_key." i<c-r>=CodeComplete_SwitchRegion(0)<cr>"
+    exec "snoremap <buffer> ".g:code_complete_complete_key." <esc>i<c-r>=CodeComplete_SwitchRegion(1)<cr>"
 endfunction
 
 function! s:CodeCompleteStop()
-    exec "silent! iunmap <buffer> ".g:completekey
-    exec "silent! nunmap <buffer> ".g:completekey
-    exec "silent! sunmap <buffer> ".g:completekey
+    exec "silent! iunmap <buffer> ".g:code_complete_complete_key
+    exec "silent! nunmap <buffer> ".g:code_complete_complete_key
+    exec "silent! sunmap <buffer> ".g:code_complete_complete_key
 endfunction
 
 function! s:FunctionComplete(fun)
@@ -146,8 +150,8 @@ function! s:FunctionComplete(fun)
         if has_key(i,'kind') && has_key(i,'name') && has_key(i,'signature')
             if (i.kind=='p' || i.kind=='f') && i.name==a:fun  " p is declare, f is defination
                 if match(i.signature,'(\s*void\s*)')<0 && match(i.signature,'(\s*)')<0
-                    let tmp=substitute(i.signature,',',g:re.','.g:rs,'g')
-                    let tmp=substitute(tmp,'(\(.*\))',g:rs.'\1'.g:re.')','g')
+                    let tmp=substitute(i.signature,',',s:re.','.s:rs,'g')
+                    let tmp=substitute(tmp,'(\(.*\))',s:rs.'\1'.s:re.')','g')
                 else
                     let tmp=''
                 endif
@@ -214,13 +218,13 @@ function! CodeComplete_SwitchRegion(removeDefaults)
 
         call cursor(line("."), marker[0])
         normal v
-        call cursor(line("."), marker[1] + strlen(g:re) - 1)
+        call cursor(line("."), marker[1] + strlen(s:re) - 1)
         if &selection == "exclusive"
             exec "norm " . "\<right>"
         endif
 
         "if the place holders are empty
-        if (marker[1] + strlen(g:re) - marker[0]) == strlen(g:rs) + strlen(g:re)
+        if (marker[1] + strlen(s:re) - marker[0]) == strlen(s:rs) + strlen(s:re)
             return "\<c-\>\<c-n>gvc"
         else
             return "\<c-\>\<c-n>gvo\<c-g>"
@@ -239,7 +243,7 @@ endfunction
 "for [start_column, end_column], where start_column points to the start of
 "<+/<+= and end_column points to the start of +>
 function! s:NextMarker()
-    let start = searchpos('\V\('.g:rs.'\|'.g:rsd.'\)'.'\.\{-\}'.g:re, 'c')[1]
+    let start = searchpos('\V\('.s:rs.'\|'.s:rsd.'\)'.'\.\{-\}'.s:re, 'c')[1]
     if start == 0
         throw "CodeComplete.NoMarkersFoundError"
     endif
@@ -248,11 +252,11 @@ function! s:NextMarker()
     let balance = 0
     let i = start-1
     while i < strlen(l)
-        if strpart(l, i, strlen(g:rs)) == g:rs
+        if strpart(l, i, strlen(s:rs)) == s:rs
             let balance += 1
-        elseif strpart(l, i, strlen(g:rsd)) == g:rsd
+        elseif strpart(l, i, strlen(s:rsd)) == s:rsd
             let balance += 1
-        elseif strpart(l, i, strlen(g:re)) == g:re
+        elseif strpart(l, i, strlen(s:re)) == s:re
             let balance -= 1
         endif
 
@@ -328,16 +332,16 @@ endfunction
 function! s:RemoveDefaultMarkers()
     "try
         let marker = s:NextMarker()
-        if strpart(getline('.'), marker[0]-1, strlen(g:rsd)) == g:rsd
+        if strpart(getline('.'), marker[0]-1, strlen(s:rsd)) == s:rsd
 
             "remove them
             let line = getline(".")
             let start = marker[0] - 1
-            let startOfBody = start + strlen(g:rsd)
+            let startOfBody = start + strlen(s:rsd)
             let end = marker[1] - 1
             let line = strpart(line, 0, start) .
                         \ strpart(line, startOfBody, end - startOfBody) .
-                        \ strpart(line, end+strlen(g:re))
+                        \ strpart(line, end+strlen(s:re))
             call setline(line("."), line)
         endif
     "catch /CodeComplete.NoMarkersFoundError/
