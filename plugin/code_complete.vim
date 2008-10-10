@@ -209,29 +209,64 @@ function! CodeComplete_SwitchRegion(removeDefaults)
         call s:RemoveDefaultMarkers()
     endif
 
-    if search(g:rs.'.\{-}'.g:re, 'c') != 0
-        let start_col =  searchpos(g:rs,'c',line('.'))[1]
+    try
+        let marker = s:NextMarker()
+
+        call cursor(line("."), marker[0])
         normal v
-        let end_col = searchpos(g:re,'e',line('.'))[1]
+        call cursor(line("."), marker[1] + strlen(g:re) - 1)
         if &selection == "exclusive"
             exec "norm " . "\<right>"
         endif
 
         "if the place holders are empty
-        if (end_col - start_col + 1) == strlen(g:rs) + strlen(g:re)
+        if (marker[1] + strlen(g:re) - marker[0]) == strlen(g:rs) + strlen(g:re)
             return "\<c-\>\<c-n>gvc"
         else
             return "\<c-\>\<c-n>gvo\<c-g>"
         endif
-    else
+    catch /CodeComplete.NoMarkersFoundError/
         if s:doappend == 1
             if g:completekey == "<tab>"
                 return "\<tab>"
             endif
         endif
         return ''
-    endif
+    endtry
 endfunction
+
+"jump the cursor to the start of the next marker and return an array of the
+"for [start_column, end_column], where start_column points to the start of
+"<+/<+= and end_column points to the start of +>
+function! s:NextMarker()
+    let start = searchpos('\V\('.g:rs.'\|'.g:rsd.'\)'.'\.\{-\}'.g:re, 'c')[1]
+    if start == 0
+        throw "CodeComplete.NoMarkersFoundError"
+    endif
+
+    let l = getline(".")
+    let balance = 0
+    let i = start-1
+    while i < strlen(l)
+        if strpart(l, i, strlen(g:rs)) == g:rs
+            let balance += 1
+        elseif strpart(l, i, strlen(g:rsd)) == g:rsd
+            let balance += 1
+        elseif strpart(l, i, strlen(g:re)) == g:re
+            let balance -= 1
+        endif
+
+        if balance == 0
+            "add 1 for 'string index' => 'column number' conversion
+            return [start,i+1]
+        endif
+
+        let i += 1
+
+    endwhile
+    throw "CodeComplete.MalformedMarkersError"
+endfunction
+
 
 function! CodeComplete()
     let s:doappend = 1
@@ -291,21 +326,22 @@ endfunction
 "
 "  foo foobar foo
 function! s:RemoveDefaultMarkers()
-    let col = col(".")
+    "try
+        let marker = s:NextMarker()
+        if strpart(getline('.'), marker[0]-1, strlen(g:rsd)) == g:rsd
 
-    "check for default markers at current position
-    if strpart(getline('.'), col-1, strlen(g:rsd)) == g:rsd
-
-        "remove them
-        let line = getline(".")
-        let start = col-1
-        let startOfBody = start + strlen(g:rsd)
-        let end = match(line, g:re, start)
-        let line = strpart(line, 0, start) .
-            \ strpart(line, startOfBody, end - startOfBody) .
-            \ strpart(line, end+strlen(g:re))
-        call setline(line("."), line)
-    endif
+            "remove them
+            let line = getline(".")
+            let start = marker[0] - 1
+            let startOfBody = start + strlen(g:rsd)
+            let end = marker[1] - 1
+            let line = strpart(line, 0, start) .
+                        \ strpart(line, startOfBody, end - startOfBody) .
+                        \ strpart(line, end+strlen(g:re))
+            call setline(line("."), line)
+        endif
+    "catch /CodeComplete.NoMarkersFoundError/
+    "endtry
 endfunction
 
 function! CodeCompleteAddTemplate(filetype, keyword, expansion)
