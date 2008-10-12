@@ -69,6 +69,30 @@
 "   4 is an empty marker, these markers are removed when the cursor "arrives"
 "   on them.
 "
+"
+" Example Template: validates_presence_of for rails
+"   call CodeCompleteAddTemplate("ruby", "vpo", "validates_presence_of :<++><+=, :message => '<++>', :on => <++>, :if => <++>+>")
+"
+"   Notice how the second marker:
+"   "<+=, :message => '<++>', :on => <++>, :if => <++>+>"
+"   has 3 markers nested inside it. When you tab to this marker you can either
+"   hit tab again to "tab into" it, or hit backspace/ctrl-h or enter to delete
+"   it and move on. This way you can create "optional" parts to a template.
+"
+"
+" Example Template: global modeline template
+"   function! ModelineTemplate()
+"       let start = substitute(&commentstring, '^\([^ ]*\)\s*%s\(.*\)$', '\1', '')
+"       let end = substitute(&commentstring, '^.*%s\(.*\)$', '\1', '')
+"       return start . " vim: set <+settings+>:" . end
+"   endfunction
+
+"   call CodeCompleteAddGlobalTemplate("modeline", "\<c-r>=ModelineTemplate()\<CR>")
+"
+"   Here we have a template that uses some more complex logic, so we get a
+"   function to generate the template code for us.
+"
+"
 " Duplicate Keywords:
 "   If multiple templates exist for the same keyword then the script will
 "   ask you which one you want to insert.
