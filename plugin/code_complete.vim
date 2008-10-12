@@ -128,9 +128,9 @@ menu <silent>       &Tools.Code\ Complete\ Stop           :CodeCompleteStop<cr>
 function! s:CodeCompleteStart()
     exec "silent! iunmap  <buffer> ".g:code_complete_complete_key
     exec "silent! nunmap  <buffer> ".g:code_complete_complete_key
-    exec "inoremap <buffer> ".g:code_complete_complete_key." <c-r>=CodeComplete()<cr><c-r>=CodeComplete_SwitchRegion(0)<cr>"
-    exec "nnoremap <buffer> ".g:code_complete_complete_key." i<c-r>=CodeComplete_SwitchRegion(0)<cr>"
-    exec "snoremap <buffer> ".g:code_complete_complete_key." <esc>i<c-r>=CodeComplete_SwitchRegion(1)<cr>"
+    exec "inoremap <buffer> ".g:code_complete_complete_key." <c-r>=CodeComplete()<cr><c-r>=CodeComplete_SwitchRegion(0,1)<cr>"
+    exec "nnoremap <buffer> ".g:code_complete_complete_key." i<c-r>=CodeComplete_SwitchRegion(0,0)<cr>"
+    exec "snoremap <buffer> ".g:code_complete_complete_key." <esc>i<c-r>=CodeComplete_SwitchRegion(1,0)<cr>"
 endfunction
 
 function! s:CodeCompleteStop()
@@ -199,7 +199,7 @@ function! s:ExpandTemplate(cword)
     return ''
 endfunction
 
-function! CodeComplete_SwitchRegion(removeDefaults)
+function! CodeComplete_SwitchRegion(removeDefaults, allowAppend)
     if len(s:signature_list)>1
         let s:signature_list=[]
         return ''
@@ -217,7 +217,7 @@ function! CodeComplete_SwitchRegion(removeDefaults)
         let marker = s:NextMarker()
 
         call cursor(line("."), marker[0])
-        normal v
+        normal! v
         call cursor(line("."), marker[1] + strlen(s:re) - 1)
         if &selection == "exclusive"
             exec "norm " . "\<right>"
@@ -230,12 +230,14 @@ function! CodeComplete_SwitchRegion(removeDefaults)
             return "\<c-\>\<c-n>gvo\<c-g>"
         endif
     catch /CodeComplete.NoMarkersFoundError/
-        if s:doappend == 1
+        if s:doappend && a:allowAppend
             if g:code_complete_complete_key == "<tab>"
                 return "\<tab>"
             endif
         endif
-        return ''
+        "we were called from normal mode so return to normal and move the
+        "cursor forward again
+        return "\<ESC>l"
     endtry
 endfunction
 
