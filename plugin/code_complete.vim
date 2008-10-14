@@ -152,9 +152,9 @@ menu <silent>       &Tools.Code\ Complete\ Stop           :CodeCompleteStop<cr>
 function! s:CodeCompleteStart()
     exec "silent! iunmap  <buffer> ".g:code_complete_complete_key
     exec "silent! nunmap  <buffer> ".g:code_complete_complete_key
-    exec "inoremap <buffer> ".g:code_complete_complete_key." <c-r>=CodeComplete()<cr><c-r>=CodeComplete_SwitchRegion(0,1)<cr>"
-    exec "nnoremap <buffer> ".g:code_complete_complete_key." i<c-r>=CodeComplete_SwitchRegion(0,0)<cr>"
-    exec "snoremap <buffer> ".g:code_complete_complete_key." <esc>i<c-r>=CodeComplete_SwitchRegion(1,0)<cr>"
+    exec "inoremap <buffer> ".g:code_complete_complete_key." <c-r>=CodeComplete()<cr><c-r>=CodeComplete_SwitchRegion(1)<cr>"
+    exec "nnoremap <buffer> ".g:code_complete_complete_key." i<c-r>=CodeComplete_SwitchRegion(0)<cr>"
+    exec "snoremap <buffer> ".g:code_complete_complete_key." <esc>i<c-r>=CodeComplete_SwitchRegion(0)<cr>"
 endfunction
 
 function! s:CodeCompleteStop()
@@ -223,7 +223,7 @@ function! s:ExpandTemplate(cword)
     return ''
 endfunction
 
-function! CodeComplete_SwitchRegion(removeDefaults, allowAppend)
+function! CodeComplete_SwitchRegion(allowAppend)
     if len(s:signature_list)>1
         let s:signature_list=[]
         return ''
@@ -233,22 +233,22 @@ function! CodeComplete_SwitchRegion(removeDefaults, allowAppend)
         let s:jumppos = -1
     endif
 
-    if a:removeDefaults
-        call s:RemoveDefaultMarkers()
-    endif
 
     try
-        let marker = s:NextMarker()
+        let selection = s:NextMarker()
 
-        call cursor(line("."), marker[0])
-        normal! v
-        call cursor(line("."), marker[1] + strlen(s:re) - 1)
-        if &selection == "exclusive"
-            exec "norm " . "\<right>"
+        let removedDefaults = 0
+        if s:RemoveDefaultMarkers()
+            let selection[1] -= (strlen(s:rsd) + strlen(s:re))
+            let removedDefaults = 1
         endif
 
+        call cursor(line("."), selection[0])
+        normal! v
+        call cursor(line("."), selection[1] + strlen(s:re) - 1 + (&selection == "exclusive"))
+
         "if the place holders are empty
-        if (marker[1] + strlen(s:re) - marker[0]) == strlen(s:rs) + strlen(s:re)
+        if !removedDefaults && (selection[1] + strlen(s:re) - selection[0]) == strlen(s:rs) + strlen(s:re)
             return "\<c-\>\<c-n>gvc"
         else
             return "\<c-\>\<c-n>gvo\<c-g>"
@@ -369,6 +369,7 @@ function! s:RemoveDefaultMarkers()
                         \ strpart(line, startOfBody, end - startOfBody) .
                         \ strpart(line, end+strlen(s:re))
             call setline(line("."), line)
+            return 1
         endif
     "catch /CodeComplete.NoMarkersFoundError/
     "endtry
