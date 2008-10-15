@@ -236,6 +236,7 @@ function! CodeComplete_SwitchRegion(allowAppend)
 
     try
         let selection = s:NextMarker()
+        let markersEmpty = s:MarkersEmpty(selection[0], selection[1], line("."))
 
         let removedDefaults = 0
         if s:RemoveDefaultMarkers()
@@ -243,16 +244,19 @@ function! CodeComplete_SwitchRegion(allowAppend)
             let removedDefaults = 1
         endif
 
+
         call cursor(line("."), selection[0])
         normal! v
         call cursor(line("."), selection[1] + strlen(s:re) - 1 + (&selection == "exclusive"))
 
-        "if the place holders are empty
-        if !removedDefaults && (selection[1] + strlen(s:re) - selection[0]) == strlen(s:rs) + strlen(s:re)
+        if removedDefaults && markersEmpty
+            return "\<right>"
+        elseif !removedDefaults && markersEmpty
             return "\<c-\>\<c-n>gvc"
         else
             return "\<c-\>\<c-n>gvo\<c-g>"
         endif
+
     catch /CodeComplete.NoMarkersFoundError/
         if s:doappend && a:allowAppend
             if g:code_complete_complete_key == "<tab>"
@@ -264,6 +268,30 @@ function! CodeComplete_SwitchRegion(allowAppend)
         return "\<ESC>l"
     endtry
 endfunction
+
+"Returns 1 if there is an empty set of markers at the given position. The
+"markers can be <++> or <+=+>.
+"
+"The params are column numbers and a line number
+function! s:MarkersEmpty(start, end, line)
+    let start = a:start - 1
+    let end = a:end - 1
+    let line = getline(a:line)
+
+    if strpart(line, end, strlen(s:re)) != s:re
+        throw "CodeComplete.InvalidParamsError"
+    endif
+
+    if strpart(line, start, strlen(s:rsd)) == s:rsd
+        return (end - start - strlen(s:rsd)) == 0
+    elseif strpart(line, start, strlen(s:rs)) == s:rs
+        return (end - start - strlen(s:rs)) == 0
+    else
+        throw "CodeComplete.InvalidParamsError"
+    endif
+
+endfunction
+
 
 "jump the cursor to the start of the next marker and return an array of the
 "for [start_column, end_column], where start_column points to the start of
