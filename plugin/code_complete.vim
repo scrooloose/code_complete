@@ -356,7 +356,7 @@ endfunction
 "
 "  foo foobar foo
 function! s:RemoveDefaultMarkers()
-    "try
+    try
         let marker = s:NextMarker()
         if strpart(getline('.'), marker[0]-1, strlen(s:rsd)) == s:rsd
 
@@ -371,8 +371,8 @@ function! s:RemoveDefaultMarkers()
             call setline(line("."), line)
             return 1
         endif
-    "catch /CodeComplete.NoMarkersFoundError/
-    "endtry
+    catch /CodeComplete.NoMarkersFoundError/
+    endtry
 endfunction
 
 function! CodeCompleteAddTemplate(filetype, keyword, expansion)
